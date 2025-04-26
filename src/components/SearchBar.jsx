@@ -1,35 +1,45 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search } from 'react-feather';
 
-function SearchBar({ searchQuery, setSearchQuery }) {
+function SearchBar({ searchTerm, setSearchTerm }) {
   const [expanded, setExpanded] = useState(false);
-  const inputRef = useRef();
+  const containerRef = useRef();
 
+  // Close search when clicked outside
   useEffect(() => {
-    if (expanded) {
-      inputRef.current?.focus();
+    function handleClickOutside(event) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setExpanded(false);
+      }
     }
-  }, [expanded]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="flex items-center gap-2">
       <button
-        className="p-2 text-gray-600 dark:text-white hover:text-blue-600"
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => setExpanded(prev => !prev)}
+        className="bg-gray-200 dark:bg-gray-700 p-2 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600"
       >
-        <Search />
+        <Search size={20} />
       </button>
-      {expanded && (
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Search widgets..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onBlur={() => !searchQuery && setExpanded(false)}
-          className="absolute right-0 top-0 w-64 px-3 py-1 border border-gray-400 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-black dark:text-white shadow-md"
-        />
-      )}
+
+      {/* Smoothly show input when expanded */}
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${expanded ? 'w-60' : 'w-0'}`}>
+        {expanded && (
+          <input
+            type="text"
+            placeholder="Search Widgets..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full p-2 rounded-md border dark:bg-gray-700 dark:text-white bg-white text-black shadow"
+            autoFocus
+          />
+        )}
+      </div>
     </div>
   );
 }
